@@ -1,4 +1,4 @@
-package model.sensor.type;
+package ru.practicum.model.sensor.type;
 
 public enum SensorEventType {
     LIGHT_SENSOR_EVENT,

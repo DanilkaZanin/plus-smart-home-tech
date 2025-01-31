@@ -1,9 +1,9 @@
-package model.sensor;
+package ru.practicum.model.sensor;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import model.sensor.type.SensorEventType;
+import ru.practicum.model.sensor.type.SensorEventType;
 
 @Getter
 @Setter
