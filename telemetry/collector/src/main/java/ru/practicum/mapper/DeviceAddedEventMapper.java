@@ -10,6 +10,6 @@ import ru.yandex.practicum.kafka.telemetry.event.DeviceAddedEventAvro;
 public interface DeviceAddedEventMapper {
     DeviceAddedEventMapper INSTANCE = Mappers.getMapper(DeviceAddedEventMapper.class);
 
-    @Mapping(target = "type", ignore = true)
+    @Mapping(source = "deviceType", target = "type")
     DeviceAddedEventAvro toAvro(DeviceAddedEvent deviceAddedEvent);
 }
