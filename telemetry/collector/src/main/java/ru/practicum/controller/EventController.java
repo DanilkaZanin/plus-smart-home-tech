@@ -5,6 +5,7 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Value;
 import ru.practicum.handler.hub.HubEventHandler;
@@ -21,14 +22,16 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @GrpcService
 public class EventController extends CollectorControllerGrpc.CollectorControllerImplBase {
     private final KafkaService kafkaService;
     private final Map<SensorEventProto.PayloadCase, SensorEventHandler> sensorEventHandlers;
     private final Map<HubEventProto.PayloadCase, HubEventHandler> hubEventHandlers;
 
-    public EventController(KafkaService kafkaService, Set<SensorEventHandler> sensorEventHandlers, Set<HubEventHandler> hubEventHandlers) {
-
+    public EventController(KafkaService kafkaService,
+                           Set<SensorEventHandler> sensorEventHandlers,
+                           Set<HubEventHandler> hubEventHandlers) {
         this.kafkaService = kafkaService;
 
         this.sensorEventHandlers = sensorEventHandlers.stream()
