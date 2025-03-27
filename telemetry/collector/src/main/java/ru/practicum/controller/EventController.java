@@ -45,6 +45,8 @@ public class EventController extends CollectorControllerGrpc.CollectorController
                         HubEventHandler::getMessageType,
                         Function.identity()
                 ));
+        log.info("Инициализирован EventController: hubEventHandlers count: {}, sensorEventHandlers count: {}",
+                hubEventHandlers.size(), sensorEventHandlers.size());
     }
 
     @Value("${spring.kafka.producer.topic.hubs}")
@@ -56,15 +58,18 @@ public class EventController extends CollectorControllerGrpc.CollectorController
 
     @Override
     public void collectSensorEvent(SensorEventProto request, StreamObserver<Empty> responseObserver) {
+        log.info("Принял на обработку grpc request: {}", request .getPayloadCase());
         try {
             if (sensorEventHandlers.containsKey(request.getPayloadCase())) {
                 SensorEvent event = sensorEventHandlers.get(request.getPayloadCase()).handle(request);
+                log.info("Смаппил protoRequest в event: {}", event);
                 collectSensorEvent(event);
             } else {
                 throw new IllegalArgumentException("Не могу найти обработчик для события " + request.getPayloadCase());
             }
             responseObserver.onNext(Empty.getDefaultInstance());
             responseObserver.onCompleted();
+            log.info("Отправил ответ");
         } catch (Exception e) {
             responseObserver.onError(new StatusRuntimeException(
                     Status.INTERNAL
