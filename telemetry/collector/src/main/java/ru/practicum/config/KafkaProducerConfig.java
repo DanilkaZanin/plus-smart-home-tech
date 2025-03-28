@@ -15,12 +15,18 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String serverHost;
 
+    @Value("${kafka.producer.key-serializer}")
+    private String keySerializer;
+
+    @Value("${kafka.producer.value-serializer}")
+    private String valueSerializer;
+
     @Bean
     public KafkaProducer<Void, SpecificRecordBase> producerFactory() {
         Properties config = new Properties();
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, serverHost);
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.VoidSerializer");
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "ru.practicum.serialize.GeneralAvroSerializer");
+        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, keySerializer);
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, valueSerializer);
 
         return new KafkaProducer<>(config);
     }

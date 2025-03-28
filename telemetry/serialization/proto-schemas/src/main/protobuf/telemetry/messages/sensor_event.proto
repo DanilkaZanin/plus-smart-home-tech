@@ -13,7 +13,7 @@ message SensorEventProto {
   google.protobuf.Timestamp timestamp = 3;
   oneof payload {
     MotionSensorProto motion_sensor_event = 4;
-    TemperatureSensorEventProto temperature_sensor_event = 5;
+    TemperatureSensorProto temperature_sensor_event = 5;
     LightSensorProto light_sensor_event = 6;
     ClimateSensorProto climate_sensor_event = 7;
     SwitchSenorProto switch_sensor_event = 8;
@@ -25,7 +25,7 @@ message MotionSensorProto {
   bool motion = 2;
   int32 voltage = 3;
 }
-message TemperatureSensorEventProto {
+message TemperatureSensorProto {
   int32 temperature_c = 1;
   int32 temperature_f = 2;
 }

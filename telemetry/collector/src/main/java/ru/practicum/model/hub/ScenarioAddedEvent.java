@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import ru.practicum.model.hub.type.HubEventType;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString(callSuper = true)
+@SuperBuilder
 public class ScenarioAddedEvent extends HubEvent {
     @Size(min = 3)
     private String name;
