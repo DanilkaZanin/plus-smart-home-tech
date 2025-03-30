@@ -3,11 +3,10 @@ package ru.practicum.mapper.device;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
-import ru.practicum.mapper.TimestampMapper;
 import ru.practicum.model.hub.DeviceAddedEvent;
 import ru.yandex.practicum.kafka.telemetry.event.DeviceAddedEventAvro;
 
-@Mapper(uses = TimestampMapper.class)
+@Mapper
 public interface DeviceAddedEventMapper {
     DeviceAddedEventMapper INSTANCE = Mappers.getMapper(DeviceAddedEventMapper.class);
 
