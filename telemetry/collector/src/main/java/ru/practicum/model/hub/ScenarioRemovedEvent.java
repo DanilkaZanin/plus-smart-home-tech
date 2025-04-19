@@ -4,11 +4,13 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import ru.practicum.model.hub.type.HubEventType;
 
 @Getter
 @Setter
 @ToString
+@SuperBuilder
 public class ScenarioRemovedEvent extends HubEvent {
     @Size(min=3)
     private String name;

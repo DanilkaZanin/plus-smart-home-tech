@@ -2,15 +2,16 @@ package ru.practicum.model.hub;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.google.protobuf.Timestamp;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import ru.practicum.model.hub.type.HubEventType;
 import ru.practicum.model.sensor.type.SensorEventType;
 
+import java.time.Instant;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -27,11 +28,12 @@ import ru.practicum.model.sensor.type.SensorEventType;
 @Getter
 @Setter
 @ToString
+@SuperBuilder
 public abstract class HubEvent {
     @NotBlank
     private String hubId;
     @NotBlank
-    private Timestamp timestamp;
+    private Instant timestamp;
     @NotNull
     public abstract HubEventType getType();
 }

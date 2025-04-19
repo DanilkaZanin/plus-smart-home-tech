@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import ru.practicum.model.sensor.type.SensorEventType;
 
 import java.time.Instant;
@@ -27,6 +28,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @ToString
+@SuperBuilder
 public abstract class SensorEvent {
     @NotBlank
     private String id;
