@@ -1,6 +1,12 @@
 package ru.program.aggregator.service;
 
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.specific.SpecificRecordBase;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
@@ -10,29 +16,57 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-@Component
+@Slf4j
+@Service
+@RequiredArgsConstructor
 public class EventService {
-    Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
+    private final Producer<String, SpecificRecordBase> producer;
+
+    @Value("${kafka.config.sensor-snapshots-topic}")
+    private String sensorSnapshotTopic;
+
+    private final Map<String, SensorsSnapshotAvro> snapshots = new HashMap<>();
 
     public Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
-
-        SensorsSnapshotAvro snapshot = snapshots.getOrDefault(event.getHubId()
-                , createSensorSnapshotAvro(event.getHubId()));
+        SensorsSnapshotAvro snapshot = snapshots.getOrDefault(
+                event.getHubId(),
+                createSensorSnapshotAvro(event.getHubId())
+        );
 
         SensorStateAvro oldState = snapshot.getSensorsState().get(event.getId());
 
-        if (oldState != null
-                && (oldState.getTimestamp().isAfter(event.getTimestamp())
-                || oldState.getData().equals(event.getPayload()))) {
+        if (oldState != null &&
+                (oldState.getTimestamp().isAfter(event.getTimestamp()) ||
+                        oldState.getData().equals(event.getPayload()))) {
             return Optional.empty();
         }
 
         SensorStateAvro newState = createSensorStateAvro(event);
         snapshot.getSensorsState().put(event.getId(), newState);
-
         snapshot.setTimestamp(event.getTimestamp());
         snapshots.put(event.getHubId(), snapshot);
+
+        sendToKafka(snapshot);
+
         return Optional.of(snapshot);
+    }
+
+    private void sendToKafka(SensorsSnapshotAvro snapshot) {
+        ProducerRecord<String, SpecificRecordBase> producerRecord = new ProducerRecord<>(
+                sensorSnapshotTopic,
+                null,
+                snapshot.getTimestamp().toEpochMilli(),
+                snapshot.getHubId(),
+                snapshot
+        );
+
+        producer.send(producerRecord, (metadata, exception) -> {
+            if (exception != null) {
+                log.error("Failed to send snapshot to Kafka", exception);
+            } else {
+                log.debug("Snapshot sent to Kafka: {}", metadata);
+            }
+        });
     }
 
     private SensorsSnapshotAvro createSensorSnapshotAvro(String hubId) {
@@ -43,10 +77,18 @@ public class EventService {
                 .build();
     }
 
+    public void shutdown() {
+        log.info("Shutting down EventService, closing Kafka producer...");
+        if (producer != null) {
+            producer.close();
+        }
+    }
+
     private SensorStateAvro createSensorStateAvro(SensorEventAvro event) {
         return SensorStateAvro.newBuilder()
                 .setTimestamp(event.getTimestamp())
                 .setData(event.getPayload())
                 .build();
     }
+
 }

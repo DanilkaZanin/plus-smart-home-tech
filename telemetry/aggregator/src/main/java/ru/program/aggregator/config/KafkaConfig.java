@@ -11,6 +11,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 
 import java.util.Properties;
 
@@ -24,6 +25,10 @@ public class KafkaConfig {
     private String producerKeySerializer;
     @Value("${kafka.producer.value-serializer}")
     private String producerValueSerializer;
+    @Value("${kafka.producer.client.id.config}")
+    private String producerClientIdConfig;
+
+
     @Value("${kafka.consumer.group-id}")
     private String consumerGroupId;
     @Value("${kafka.consumer.client-id-config}")
@@ -34,7 +39,7 @@ public class KafkaConfig {
     private String consumerValueDeserializer;
 
     @Bean
-    public KafkaConsumer<String, SpecificRecordBase> getConsumer() {
+    public KafkaConsumer<String, SensorEventAvro> getConsumer() {
         Properties config = new Properties();
         config.put(ConsumerConfig.CLIENT_ID_CONFIG, consumerClientIdConfig);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);
@@ -48,6 +53,7 @@ public class KafkaConfig {
     public Producer<String, SpecificRecordBase> getProducer() {
         Properties config = new Properties();
 
+        config.put(ProducerConfig.CLIENT_ID_CONFIG, producerClientIdConfig);
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapService);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, producerKeySerializer);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, producerValueSerializer);
