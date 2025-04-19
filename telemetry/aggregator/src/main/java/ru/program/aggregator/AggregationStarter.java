@@ -2,13 +2,10 @@ package ru.program.aggregator;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +15,10 @@ import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -26,7 +26,6 @@ import java.util.*;
 public class AggregationStarter {
 
     private final EventService eventService;
-    private final Producer<String, SpecificRecordBase> producer;
     private final Consumer<String, SensorEventAvro> consumer;
     private final Map<TopicPartition, OffsetAndMetadata> currentOffsets = new HashMap<>();
 
@@ -64,29 +63,17 @@ public class AggregationStarter {
         } finally {
             try {
                 consumer.commitSync(currentOffsets);
-                producer.flush();
             } finally {
-                log.info("Закрываем консьюмер");
+                log.info("Закрываем консюмер и продюсер");
                 consumer.close();
-                log.info("Закрываем продюсер");
-                producer.close();
+                eventService.shutdown();
             }
         }
     }
 
     private void handleRecord(ConsumerRecord<String, SensorEventAvro> consumerRecord) {
         Optional<SensorsSnapshotAvro> snapshotAvro = eventService.updateState(consumerRecord.value());
-        snapshotAvro.ifPresent(snapshot -> {
-            log.info("Получили снимок состояния: {}", snapshot);
-            ProducerRecord<String, SpecificRecordBase> message = new ProducerRecord<>(
-                    telemetrySnapshotTopic,
-                    null,
-                    snapshot.getTimestamp().toEpochMilli(),
-                    snapshot.getHubId(),
-                    snapshot
-            );
-            producer.send(message);
-        });
+        snapshotAvro.ifPresent(eventService::sendToKafka);
     }
 
     private void manageOffsets(ConsumerRecord<String, SensorEventAvro> consumerRecord, int count) {

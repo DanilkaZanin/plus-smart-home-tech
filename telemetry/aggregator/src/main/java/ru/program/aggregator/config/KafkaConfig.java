@@ -20,7 +20,7 @@ import java.util.Properties;
 @Configuration
 public class KafkaConfig {
     @Value("${kafka.producer.bootstrap-server}")
-    private String bootstrapService;
+    private String bootstrapServers;
     @Value("${kafka.producer.key-serializer}")
     private String producerKeySerializer;
     @Value("${kafka.producer.value-serializer}")
@@ -43,7 +43,7 @@ public class KafkaConfig {
         Properties config = new Properties();
         config.put(ConsumerConfig.CLIENT_ID_CONFIG, consumerClientIdConfig);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroupId);
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapService);
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, consumerKeyDeserializer);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, consumerValueDeserializer);
         return new KafkaConsumer<>(config);
@@ -54,7 +54,7 @@ public class KafkaConfig {
         Properties config = new Properties();
 
         config.put(ProducerConfig.CLIENT_ID_CONFIG, producerClientIdConfig);
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapService);
+        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, producerKeySerializer);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, producerValueSerializer);
 

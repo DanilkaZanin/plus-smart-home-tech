@@ -46,12 +46,10 @@ public class EventService {
         snapshot.setTimestamp(event.getTimestamp());
         snapshots.put(event.getHubId(), snapshot);
 
-        sendToKafka(snapshot);
-
         return Optional.of(snapshot);
     }
 
-    private void sendToKafka(SensorsSnapshotAvro snapshot) {
+    public void sendToKafka(SensorsSnapshotAvro snapshot) {
         ProducerRecord<String, SpecificRecordBase> producerRecord = new ProducerRecord<>(
                 sensorSnapshotTopic,
                 null,
@@ -60,13 +58,14 @@ public class EventService {
                 snapshot
         );
 
-        producer.send(producerRecord, (metadata, exception) -> {
-            if (exception != null) {
-                log.error("Failed to send snapshot to Kafka", exception);
-            } else {
-                log.debug("Snapshot sent to Kafka: {}", metadata);
-            }
-        });
+        producer.send(producerRecord);
+    }
+
+    public void shutdown() {
+        log.info("Shutting down EventService, closing Kafka producer...");
+        if (producer != null) {
+            producer.close();
+        }
     }
 
     private SensorsSnapshotAvro createSensorSnapshotAvro(String hubId) {
@@ -75,13 +74,6 @@ public class EventService {
                 .setTimestamp(Instant.now())
                 .setSensorsState(new HashMap<>())
                 .build();
-    }
-
-    public void shutdown() {
-        log.info("Shutting down EventService, closing Kafka producer...");
-        if (producer != null) {
-            producer.close();
-        }
     }
 
     private SensorStateAvro createSensorStateAvro(SensorEventAvro event) {
